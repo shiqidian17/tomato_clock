@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🍅 番茄小暖房 · 光影番茄钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #fff3e8 0%, #ffe4cc 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Poppins', sans-serif;
+            padding: 1.5rem;
+            position: relative;
+        }
+        /* 装饰性番茄小图案背景 (轻盈) */
+        body::before {
+            content: "🍅";
+            font-size: 18vw;
+            position: fixed;
+            bottom: -10vh;
+            right: -5vw;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: "🍅";
+            font-size: 22vw;
+            position: fixed;
+            top: -5vh;
+            left: -8vw;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            transform: rotate(-15deg);
+        }
+        .glass-card {
+            background: rgba(255, 250, 240, 0.85);
+            backdrop-filter: blur(16px);
+            border-radius: 3rem;
+            border: 1px solid rgba(255, 220, 180, 0.6);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 245, 225, 0.8) inset;
+            width: 100%;
+            max-width: 540px;
+            padding: 2rem 1.8rem 2.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        /* 番茄小挂饰 */
+        .tomato-badge {
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            background: #ff6b4a;
+            color: #fff7e8;
+            font-size: 1.2rem;
+            padding: 0.4rem 1rem;
+            border-radius: 60px;
+            box-shadow: 0 6px 12px rgba(255, 90, 50, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .tomato-badge span {
+            font-size: 1.3rem;
+        }
+        .app-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .app-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #c95a3a, #ff8a5c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .app-header h1::before {
+            content: "🍅";
+            font-size: 2rem;
+            background: none;
+            -webkit-background-clip: unset;
+            color: #ff7a4a;
+        }
+        .app-header h1::after {
+            content: "🍅";
+            font-size: 2rem;
+            background: none;
+            -webkit-background-clip: unset;
+            color: #ff7a4a;
+        }
+        .sub {
+            color: #b97f5a;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 0.2rem;
+            background: rgba(255,235,210,0.7);
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+        }
+        .timer-circle {
+            background: rgba(255, 245, 230, 0.7);
+            border-radius: 50%;
+            width: 260px;
+            height: 260px;
+            margin: 0.8rem auto 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05), inset 0 1px 4px rgba(255,255,200,0.8);
+            border: 1px solid #ffcf9a;
+            position: relative;
+        }
+        /* 番茄叶片装饰 */
+        .timer-circle::before {
+            content: "🌿";
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            background: none;
+        }
+        .timer-circle::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            right: -12px;
+            width: 36px;
+            height: 36px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23ff7e5e"/><path fill="%236b3e1c" d="M62,28 L70,34 L64,42 L56,38 Z"/></svg>') no-repeat center/contain;
+            opacity: 0.6;
+        }
+        .time-digits {
+            font-size: 4.2rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 4px;
+            background: linear-gradient(to bottom, #dc6b3e, #b5431a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .timer-label {
+            font-size: 0.85rem;
+            background: rgba(255, 180, 120, 0.3);
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            color: #b95a2e;
+            font-weight: 600;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0 1.5rem;
+        }
+        .btn {
+            background: rgba(250, 235, 215, 0.9);
+            border: none;
+            backdrop-filter: blur(8px);
+            padding: 0.8rem 1.8rem;
+            border-radius: 3rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #a5532a;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #ffcd9a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            font-family: inherit;
+        }
+        .btn:active { transform: scale(0.96); background: #ffe1be; }
+        .btn:hover { background: #ffe3c4; transform: translateY(-2px); }
+        #stopAlarmBtn {
+            background: #ff8a6a;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(255, 100, 50, 0.3);
+        }
+        #stopAlarmBtn:hover { background: #ff6e48; }
+        .adjust-panel {
+            background: rgba(255, 235, 210, 0.6);
+            border-radius: 2rem;
+            padding: 1rem 1.2rem;
+            backdrop-filter: blur(4px);
+            margin-top: 0.5rem;
+        }
+        .adjust-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.8rem;
+            color: #b46238;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .duration-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .stepper {
+            display: flex;
+            align-items: center;
+            background: rgba(255,245,225,0.8);
+            border-radius: 60px;
+            padding: 0.2rem;
+            border: 1px solid #ffd6aa;
+        }
+        .stepper-btn {
+            background: #ffdbbc;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            color: #b95122;
+            cursor: pointer;
+            border: none;
+            transition: 0.1s;
+        }
+        .stepper-btn:active { transform: scale(0.94); background: #ffc8a0; }
+        .minutes-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            min-width: 70px;
+            text-align: center;
+            color: #b45124;
+            font-family: monospace;
+        }
+        .quick-preset {
+            display: flex;
+            gap: 0.6rem;
+        }
+        .preset {
+            background: #fff0e0;
+            border: 1px solid #ffcf9a;
+            padding: 0.4rem 1.1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            color: #c46234;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .preset:active { background: #ffe0c0; transform: scale(0.95); }
+        .toast-msg {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: #bb744a;
+            background: rgba(255, 240, 220, 0.7);
+            padding: 0.4rem;
+            border-radius: 50px;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 1.2rem;
+            color: #c28a62;
+        }
+        @media (max-width: 480px) {
+            .timer-circle { width: 210px; height: 210px; }
+            .time-digits { font-size: 3rem; }
+            .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="glass-card">
+    <div class="tomato-badge">
+        <span>🍅</span> 番茄能量
+    </div>
+    <div class="app-header">
+        <h1>光影番茄钟</h1>
+        <div class="sub">专注 · 治愈 · 小番茄时光</div>
+    </div>
+    <div class="timer-circle">
+        <div class="time-digits" id="timerDisplay">25:00</div>
+        <div class="timer-label">FOCUS TIME</div>
+    </div>
+    <div class="controls">
+        <button class="btn" id="startBtn">▶ 开始</button>
+        <button class="btn" id="pauseBtn">⏸ 暂停</button>
+        <button class="btn" id="resetBtn">🔄 重置</button>
+    </div>
+    <div class="controls" id="alarmStopBtn" style="display: none;">
+        <button class="btn" id="stopAlarmBtn">🔕 停止闹钟</button>
+    </div>
+    <div class="adjust-panel">
+        <div class="adjust-header">
+            <span>🍅 自定义番茄时长</span>
+            <span>随心调节</span>
+        </div>
+        <div class="duration-control">
+            <div class="stepper">
+                <button class="stepper-btn" id="minusMinBtn">−</button>
+                <span class="minutes-value" id="minutesSettingVal">25</span>
+                <button class="stepper-btn" id="plusMinBtn">+</button>
+            </div>
+            <div class="quick-preset">
+                <div class="preset" data-min="5">🌱 5分</div>
+                <div class="preset" data-min="15">🍅 15分</div>
+                <div class="preset" data-min="25">🍅🍅 25分</div>
+                <div class="preset" data-min="45">🔥 45分</div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-msg" id="statusMsg">💡 点击「开始」| 结束响起温柔提醒</div>
+    <footer>⏎ 结束时自动播放音乐 · 可手动停止</footer>
+</div>
+
+<audio id="alarmSound" src="alarm.mp3" preload="auto"></audio>
+
+<script>
+    // ==================== DOM 元素 ====================
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const minusMinBtn = document.getElementById('minusMinBtn');
+    const plusMinBtn = document.getElementById('plusMinBtn');
+    const minutesSettingVal = document.getElementById('minutesSettingVal');
+    const presetBtns = document.querySelectorAll('.preset');
+    const statusMsg = document.getElementById('statusMsg');
+    const alarmStopBtnDiv = document.getElementById('alarmStopBtn');
+    const stopAlarmBtn = document.getElementById('stopAlarmBtn');
+
+    // ==================== 核心变量 ====================
+    let remainingSeconds = 25 * 60;
+    let timerInterval = null;
+    let isRunning = false;
+    let currentSettingMinutes = 25;
+    let alarmTriggered = false;
+    let alarmTimeout = null;
+
+    // 音频解锁（Web Audio备用，但音乐使用<audio>）
+    let audioCtx = null;
+    let audioAllowed = false;
+
+    // ==================== 辅助函数 ====================
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerUI() {
+        timerDisplay.textContent = formatTime(remainingSeconds);
+    }
+
+    function updateSettingUI() {
+        minutesSettingVal.textContent = currentSettingMinutes;
+    }
+
+    function stopAlarm() {
+        const audio = document.getElementById('alarmSound');
+        if (audio) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+        if (alarmStopBtnDiv) alarmStopBtnDiv.style.display = 'none';
+        if (alarmTimeout) {
+            clearTimeout(alarmTimeout);
+            alarmTimeout = null;
+        }
+    }
+
+    function changeSettingMinutes(newMinutes) {
+        if (newMinutes < 1) newMinutes = 1;
+        if (newMinutes > 99) newMinutes = 99;
+        if (newMinutes === currentSettingMinutes) return;
+
+        currentSettingMinutes = newMinutes;
+        updateSettingUI();
+
+        if (isRunning) {
+            stopTimer();
+            remainingSeconds = currentSettingMinutes * 60;
+            updateTimerUI();
+            isRunning = false;
+            statusMsg.textContent = `⏲️ 已调整至 ${currentSettingMinutes} 分钟，计时已停止`;
+        } else {
+            remainingSeconds = currentSettingMinutes * 60;
+            updateTimerUI();
+            statusMsg.textContent = `📌 时长已设为 ${currentSettingMinutes} 分钟`;
+        }
+        alarmTriggered = false;
+        stopAlarm();
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        isRunning = false;
+    }
+
+    function startCountdown() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!isRunning) return;
+            if (remainingSeconds <= 1) {
+                remainingSeconds = 0;
+                updateTimerUI();
+                stopTimer();
+                onTimeEnd();
+            } else {
+                remainingSeconds--;
+                updateTimerUI();
+            }
+        }, 1000);
+    }
+
+    function startTimer() {
+        if (isRunning) return;
+        if (remainingSeconds <= 0) {
+            remainingSeconds = currentSettingMinutes * 60;
+            updateTimerUI();
+            alarmTriggered = false;
+        }
+        // 解锁 Web Audio（用于备用，但主要音乐用<audio>）
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => { audioAllowed = true; });
+        } else {
+            audioAllowed = true;
+        }
+        // 预解锁 <audio> 元素（自动播放策略）
+        const testAudio = document.getElementById('alarmSound');
+        if (testAudio) {
+            testAudio.volume = 0;
+            testAudio.play().then(() => {
+                testAudio.pause();
+                testAudio.currentTime = 0;
+                testAudio.volume = 1;
+            }).catch(e => console.log('预解锁音频失败', e));
+        }
+        isRunning = true;
+        startCountdown();
+        statusMsg.textContent = "🍅 专注进行中... 番茄慢慢成熟";
+    }
+
+    function pauseTimer() {
+        if (!isRunning) return;
+        stopTimer();
+        statusMsg.textContent = "⏸ 已暂停，休息一下再继续";
+    }
+
+    function resetTimer() {
+        stopTimer();
+        remainingSeconds = currentSettingMinutes * 60;
+        updateTimerUI();
+        isRunning = false;
+        alarmTriggered = false;
+        statusMsg.textContent = "🔄 已重置，开始新的番茄时光";
+        stopAlarm();
+    }
+
+    function sendNotification() {
+        if (Notification.permission === 'granted') {
+            new Notification('🍅 番茄成熟啦！', {
+                body: `专注 ${currentSettingMinutes} 分钟完成，休息一下吧~`,
+                icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%23FF7E5E"/%3E%3Ctext x="50" y="70" font-size="50" text-anchor="middle" fill="white"%3E🍅%3C/text%3E%3C/svg%3E'
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(perm => {
+                if (perm === 'granted') {
+                    new Notification('🍅 番茄成熟啦！', { body: `专注 ${currentSettingMinutes} 分钟完成` });
+                }
+            });
+        }
+    }
+
+    function playAlarm() {
+        const audio = document.getElementById('alarmSound');
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log('音频播放失败:', e));
+        }
+    }
+
+    function onTimeEnd() {
+        if (alarmTriggered) return;
+        alarmTriggered = true;
+        playAlarm();
+        sendNotification();
+        statusMsg.textContent = "⏰ 叮叮！番茄成熟啦，快去休息～";
+        if (alarmStopBtnDiv) alarmStopBtnDiv.style.display = 'flex';
+        if (alarmTimeout) clearTimeout(alarmTimeout);
+        alarmTimeout = setTimeout(() => {
+            stopAlarm();
+            statusMsg.textContent = "🍅 闹钟已自动关闭，继续下一颗番茄吧";
+            setTimeout(() => {
+                if (!isRunning && alarmTriggered) {
+                    statusMsg.textContent = "✅ 周期结束，可重置或调节时长";
+                }
+            }, 2000);
+        }, 30000);
+        setTimeout(() => {
+            if (!isRunning && alarmTriggered && statusMsg.textContent === "⏰ 叮叮！番茄成熟啦，快去休息～") {
+                statusMsg.textContent = "🍅 番茄钟完成，真棒！";
+            }
+        }, 4000);
+    }
+
+    // ==================== 事件绑定 ====================
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', pauseTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    minusMinBtn.addEventListener('click', () => changeSettingMinutes(currentSettingMinutes - 1));
+    plusMinBtn.addEventListener('click', () => changeSettingMinutes(currentSettingMinutes + 1));
+    presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mins = parseInt(btn.getAttribute('data-min'), 10);
+            if (!isNaN(mins)) changeSettingMinutes(mins);
+        });
+    });
+    stopAlarmBtn.addEventListener('click', stopAlarm);
+
+    if (Notification.permission === 'default') Notification.requestPermission();
+    updateTimerUI();
+    updateSettingUI();
+</script>
+</body>
+</html>
