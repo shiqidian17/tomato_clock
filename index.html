@@ -21,7 +21,6 @@
             padding: 1.5rem;
             position: relative;
         }
-        /* 装饰性番茄背景 */
         body::before {
             content: "🍅";
             font-size: 18vw;
@@ -269,11 +268,7 @@
             padding: 0.2rem 0.6rem;
             border-radius: 40px;
         }
-        .time-input-group label {
-            font-size: 0.85rem;
-            color: #b46238;
-            font-weight: 500;
-        }
+        /* 调整输入框顺序：数字在前，标签在后 */
         .time-input-group input {
             width: 60px;
             padding: 0.3rem;
@@ -284,6 +279,13 @@
             text-align: center;
             color: #b45124;
             font-weight: 600;
+            order: 0;
+        }
+        .time-input-group label {
+            font-size: 0.85rem;
+            color: #b46238;
+            font-weight: 500;
+            order: 1;
         }
         #applyCustomBtn {
             background: #ffdbbc;
@@ -386,12 +388,12 @@
                 </div>
                 <div class="custom-input-area">
                     <div class="time-input-group">
-                        <label>分</label>
                         <input type="number" id="customMinutes" min="0" max="99" value="25" step="1">
+                        <label>分</label>
                     </div>
                     <div class="time-input-group">
-                        <label>秒</label>
                         <input type="number" id="customSeconds" min="0" max="59" value="0" step="1">
+                        <label>秒</label>
                     </div>
                     <button id="applyCustomBtn">设置</button>
                 </div>
@@ -466,7 +468,6 @@
         newSeconds = Math.min(59, Math.max(0, newSeconds));
         let total = newMinutes * 60 + newSeconds;
         if (total === 0) {
-            // 不允许0秒，自动设为1秒
             newMinutes = 0;
             newSeconds = 1;
             total = 1;
@@ -633,7 +634,6 @@
     function safeAddEvent(element, eventName, handler) {
         if (!element) return;
         element.addEventListener(eventName, handler);
-        // 同时监听 touchstart 以提高移动端响应速度
         if (eventName === 'click') {
             element.addEventListener('touchstart', handler);
         }
