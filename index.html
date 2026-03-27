@@ -21,6 +21,7 @@
             padding: 1.5rem;
             position: relative;
         }
+        /* 装饰性番茄背景 */
         body::before {
             content: "🍅";
             font-size: 18vw;
@@ -628,38 +629,48 @@
         }
     }
 
-    // ==================== 事件绑定 ====================
+    // ==================== 增强事件绑定 ====================
     function safeAddEvent(element, eventName, handler) {
         if (!element) return;
         element.addEventListener(eventName, handler);
+        // 同时监听 touchstart 以提高移动端响应速度
+        if (eventName === 'click') {
+            element.addEventListener('touchstart', handler);
+        }
     }
 
-    safeAddEvent(startBtn, 'click', startTimer);
-    safeAddEvent(pauseBtn, 'click', pauseTimer);
-    safeAddEvent(resetBtn, 'click', resetTimer);
-    safeAddEvent(minusMinBtn, 'click', () => adjustMinutes(-1));
-    safeAddEvent(plusMinBtn, 'click', () => adjustMinutes(1));
-    safeAddEvent(applyCustomBtn, 'click', () => {
-        let mins = parseInt(customMinutesInput.value, 10);
-        let secs = parseInt(customSecondsInput.value, 10);
-        if (isNaN(mins)) mins = 0;
-        if (isNaN(secs)) secs = 0;
-        changeSetting(mins, secs);
-    });
-    presetBtns.forEach(btn => {
-        safeAddEvent(btn, 'click', () => {
-            const mins = parseInt(btn.getAttribute('data-min'), 10);
-            if (!isNaN(mins)) changeSetting(mins, 0);
+    function bindEvents() {
+        safeAddEvent(startBtn, 'click', startTimer);
+        safeAddEvent(pauseBtn, 'click', pauseTimer);
+        safeAddEvent(resetBtn, 'click', resetTimer);
+        safeAddEvent(minusMinBtn, 'click', () => adjustMinutes(-1));
+        safeAddEvent(plusMinBtn, 'click', () => adjustMinutes(1));
+        safeAddEvent(applyCustomBtn, 'click', () => {
+            let mins = parseInt(customMinutesInput.value, 10);
+            let secs = parseInt(customSecondsInput.value, 10);
+            if (isNaN(mins)) mins = 0;
+            if (isNaN(secs)) secs = 0;
+            changeSetting(mins, secs);
         });
-    });
-    safeAddEvent(stopAlarmBtn, 'click', stopAlarm);
+        presetBtns.forEach(btn => {
+            safeAddEvent(btn, 'click', () => {
+                const mins = parseInt(btn.getAttribute('data-min'), 10);
+                if (!isNaN(mins)) changeSetting(mins, 0);
+            });
+        });
+        safeAddEvent(stopAlarmBtn, 'click', stopAlarm);
+    }
 
-    // 移动端触摸增强
-    if (startBtn) startBtn.addEventListener('touchstart', startTimer);
-    if (pauseBtn) pauseBtn.addEventListener('touchstart', pauseTimer);
-    if (resetBtn) resetBtn.addEventListener('touchstart', resetTimer);
+    // 初始化：在 DOM 加载完成后绑定事件
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindEvents);
+    } else {
+        bindEvents();
+    }
 
+    // 请求通知权限
     if (Notification.permission === 'default') Notification.requestPermission();
+    // 初始显示
     updateTimerUI();
     updateSettingUI();
 </script>
